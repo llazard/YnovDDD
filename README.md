@@ -17,7 +17,7 @@ services du domaine, les repositories et les tests viendront avec le J3.
 | `lesson` | `Lesson` | `TimeSlot`, `LessonStatus` | R2 : une leçon annulée moins de 48 heures avant reste due |
 | `instructor` | `Instructor` | `FullName` | pas encore de règle |
 
-Un package par aggregate. Les value objects partagés, `FullName` et `Hours`, sont dans
+Un package par aggregate, dans `src/fr/ynov/autoecole`. Les value objects partagés, `FullName` et `Hours`, sont dans
 `shared`. Chaque identifiant est un value object : `StudentId`, `LessonId`,
 `InstructorId`. Une leçon connaît l'élève et le moniteur par leurs identifiants, jamais
 par les objets.
@@ -42,9 +42,21 @@ verra au J3 où la placer.
 
 ## Lancer
 
-Java 21 ou plus. Le projet s'ouvre tel quel dans IntelliJ IDEA ou VS Code, comme projet
-Maven :
+Java 21 ou plus, sans outil de build : le code est dans `src/`. `Main` met les règles à
+l'épreuve : il essaie ce que le métier autorise et ce qu'il interdit, et affiche la
+réponse du modèle.
 
 ```bash
-mvn compile
+javac -d out $(find src -name "*.java")
+java -cp out fr.ynov.autoecole.Main
 ```
+
+Sous Windows, en PowerShell :
+
+```powershell
+javac -d out (Get-ChildItem -Recurse src -Filter *.java).FullName
+java -cp out fr.ynov.autoecole.Main
+```
+
+Dans IntelliJ IDEA : ouvrir le dossier, marquer `src` comme dossier de sources, puis
+lancer `Main`.
