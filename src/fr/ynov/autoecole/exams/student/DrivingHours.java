@@ -1,6 +1,6 @@
 package fr.ynov.autoecole.exams.student;
 
-/** For the exams, an hour is an hour of driving given, counted towards the twenty hours. */
+/** Pour les examens, une heure est une heure de conduite donnée, qui compte dans les vingt heures. */
 public record DrivingHours(int value) {
 
     public static final DrivingHours ZERO = new DrivingHours(0);

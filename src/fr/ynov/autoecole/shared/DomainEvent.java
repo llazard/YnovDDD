@@ -1,8 +1,8 @@
 package fr.ynov.autoecole.shared;
 
 /**
- * An orange post-it of the event storming: a fact of the business, in the past tense.
- * Each event is a record, named with the words of its context's glossary.
+ * Un post-it orange de l'event storming : un fait du métier, au passé.
+ * Chaque événement est un record, nommé avec les mots du glossaire de son contexte.
  */
 public interface DomainEvent {
 }

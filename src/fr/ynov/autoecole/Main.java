@@ -22,8 +22,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Plays the timeline of the event storming, from left to right: who acts, which command,
- * which events. Who chains these calls in a real application? The use cases, on day 3.
+ * Déroule la frise de l'event storming, de gauche à droite : qui agit, quelle commande,
+ * quels événements. Qui enchaîne ces appels dans une vraie application ? Les cas d'usage,
+ * au J3.
  */
 public class Main {
 
@@ -90,7 +91,7 @@ public class Main {
         System.out.println("- Does a lesson cancelled in time give its hour back?");
     }
 
-    /** The command "reserve a lesson": the planning reads the secretariat, then books. */
+    /** La commande « réserver une leçon » : le planning lit le secrétariat, puis réserve. */
     private static Lesson reserveLesson(Instructor instructor, LocalDateTime start) {
         if (!PlanningToSecretariat.hasHoursLeft(secretariat)) {
             throw new IllegalStateException("R1, no hour left to reserve a lesson");
@@ -101,7 +102,7 @@ public class Main {
         return lesson;
     }
 
-    /** One line of the timeline, then what the other contexts do with its events. */
+    /** Une ligne de la frise, puis ce que les autres contextes font de ses événements. */
     private static void tell(String actor, String command, AggregateRoot root) {
         List<DomainEvent> events = root.pullEvents();
         if (!quiet) {
@@ -113,7 +114,7 @@ public class Main {
         events.forEach(Main::translate);
     }
 
-    /** The arrows of the context map: an event of one context, a command in another. */
+    /** Les flèches de la context map : un événement d'un contexte, une commande dans un autre. */
     private static void translate(DomainEvent event) {
         switch (event) {
             case LessonBooked booked -> {

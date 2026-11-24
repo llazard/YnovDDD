@@ -4,8 +4,9 @@ import fr.ynov.autoecole.shared.AggregateRoot;
 import fr.ynov.autoecole.shared.StudentId;
 
 /**
- * The student, as the exams see them: the theory exam, the driving hours given, the
- * driving exam. Same person as in the secretariat, same identity, another model.
+ * L'élève, vu par les examens : l'examen du code, les heures de conduite données,
+ * l'examen de conduite. La même personne qu'au secrétariat, la même identité, un autre
+ * modèle.
  */
 public class Student extends AggregateRoot {
 

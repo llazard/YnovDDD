@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The root of an aggregate records the events its commands produce.
- * Whoever called the command pulls them, and passes them to the other contexts.
+ * La racine d'un aggregate enregistre les événements que ses commandes produisent.
+ * Celui qui a appelé la commande les récupère, et les passe aux autres contextes.
  */
 public abstract class AggregateRoot {
 

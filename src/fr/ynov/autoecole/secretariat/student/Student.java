@@ -4,7 +4,7 @@ import fr.ynov.autoecole.shared.AggregateRoot;
 import fr.ynov.autoecole.shared.FullName;
 import fr.ynov.autoecole.shared.StudentId;
 
-/** The student, as the secretariat sees them: a name, and the hours bought. */
+/** L'élève, vu par le secrétariat : un nom, et les heures achetées. */
 public class Student extends AggregateRoot {
 
     private final StudentId id;
