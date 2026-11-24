@@ -17,7 +17,7 @@ les tests viendront avec le J3.
 | Planning | `planning` | la leçon, le moniteur, le créneau |
 | Examens | `exams` | l'examen du code, les heures de conduite, l'examen de conduite |
 | ce que les trois partagent | `shared` | l'identité de l'élève, son nom, ce qu'est un événement |
-| les flèches de la context map | `contextmap` | une classe par flèche : la traduction entre deux contextes |
+| les flèches de la context map | `contextmap` | une classe par flèche entre deux de nos contextes : la traduction de l'un vers l'autre ; la flèche vers le paiement en ligne, acheté, n'a pas de code ici |
 
 Le J1 rangeait un package par aggregate ; le J2 range ces packages dans leur contexte :
 `planning.lesson`, `planning.instructor`, `secretariat.student`, `exams.student`.
