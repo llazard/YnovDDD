@@ -1,4 +1,4 @@
-package fr.ynov.autoecole.shared;
+package fr.ynov.autoecole.secretariat.student;
 
 public record Hours(int value) {
 

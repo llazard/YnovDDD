@@ -1,4 +1,4 @@
-package fr.ynov.autoecole.student;
+package fr.ynov.autoecole.shared;
 
 import java.util.Objects;
 import java.util.UUID;

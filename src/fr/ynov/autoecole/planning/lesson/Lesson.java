@@ -1,12 +1,14 @@
-package fr.ynov.autoecole.lesson;
+package fr.ynov.autoecole.planning.lesson;
 
-import fr.ynov.autoecole.instructor.InstructorId;
-import fr.ynov.autoecole.student.StudentId;
+import fr.ynov.autoecole.planning.instructor.InstructorId;
+import fr.ynov.autoecole.shared.AggregateRoot;
+import fr.ynov.autoecole.shared.StudentId;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-public class Lesson {
+/** The lesson, as the planning sees it. The student is only an identity here. */
+public class Lesson extends AggregateRoot {
 
     private static final Duration MINIMUM_NOTICE = Duration.ofHours(48);
 
@@ -22,6 +24,7 @@ public class Lesson {
         this.studentId = studentId;
         this.instructorId = instructorId;
         this.slot = slot;
+        record(new LessonBooked(id, studentId, slot));
     }
 
     public LessonId id() {
@@ -31,12 +34,19 @@ public class Lesson {
     public void give() {
         ensureBooked();
         status = LessonStatus.GIVEN;
+        record(new LessonGiven(id, studentId));
     }
 
     public void cancel(LocalDateTime at) {
         ensureBooked();
         status = LessonStatus.CANCELLED;
         due = Duration.between(at, slot.start()).compareTo(MINIMUM_NOTICE) < 0;
+        record(new LessonCancelled(id, studentId, at));
+        // Hot spot, still a question for the business: is a lesson cancelled for illness,
+        // with a medical certificate, still due? Until it answers, the 48 hours rule applies.
+        if (due) {
+            record(new LessonDue(id, studentId));
+        }
     }
 
     public boolean isDue() {

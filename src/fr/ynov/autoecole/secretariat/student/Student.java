@@ -1,9 +1,11 @@
-package fr.ynov.autoecole.student;
+package fr.ynov.autoecole.secretariat.student;
 
+import fr.ynov.autoecole.shared.AggregateRoot;
 import fr.ynov.autoecole.shared.FullName;
-import fr.ynov.autoecole.shared.Hours;
+import fr.ynov.autoecole.shared.StudentId;
 
-public class Student {
+/** The student, as the secretariat sees them: a name, and the hours bought. */
+public class Student extends AggregateRoot {
 
     private final StudentId id;
     private FullName name;
@@ -12,6 +14,7 @@ public class Student {
     public Student(StudentId id, FullName name) {
         this.id = id;
         this.name = name;
+        record(new StudentRegistered(id));
     }
 
     public StudentId id() {
@@ -24,6 +27,7 @@ public class Student {
 
     public void buyHours(Hours hours) {
         remainingHours = remainingHours.plus(hours);
+        record(new HoursPurchased(id, hours));
     }
 
     public void useHour() {
@@ -31,6 +35,7 @@ public class Student {
             throw new IllegalStateException("No remaining hours");
         }
         remainingHours = remainingHours.minus(Hours.ONE);
+        record(new HourUsed(id, remainingHours));
     }
 
     @Override

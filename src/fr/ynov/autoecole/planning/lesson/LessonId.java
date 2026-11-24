@@ -1,4 +1,4 @@
-package fr.ynov.autoecole.lesson;
+package fr.ynov.autoecole.planning.lesson;
 
 import java.util.Objects;
 import java.util.UUID;

@@ -1,4 +1,4 @@
-package fr.ynov.autoecole.instructor;
+package fr.ynov.autoecole.planning.instructor;
 
 import fr.ynov.autoecole.shared.FullName;
 
