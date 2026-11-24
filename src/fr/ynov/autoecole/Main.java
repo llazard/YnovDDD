@@ -23,8 +23,7 @@ import java.util.stream.Collectors;
 
 /**
  * Déroule la frise de l'event storming, de gauche à droite : qui agit, quelle commande,
- * quels événements. Qui enchaîne ces appels dans une vraie application ? Les cas d'usage,
- * au J3.
+ * quels événements.
  */
 public class Main {
 
