@@ -1,7 +1,7 @@
 package fr.ynov.autoecole.contextmap;
 
-import fr.ynov.autoecole.exams.student.Student;
-import fr.ynov.autoecole.planning.lesson.LessonGiven;
+import fr.ynov.autoecole.exams.domain.student.Student;
+import fr.ynov.autoecole.planning.domain.lesson.LessonGiven;
 
 /**
  * Une flèche de la context map : les examens dépendent du planning.

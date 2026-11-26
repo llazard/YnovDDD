@@ -15,6 +15,11 @@ public abstract class AggregateRoot {
         events.add(event);
     }
 
+    /** Les événements enregistrés, sans les retirer : le cas d'usage les lit pour les traduire. */
+    public List<DomainEvent> events() {
+        return List.copyOf(events);
+    }
+
     public List<DomainEvent> pullEvents() {
         List<DomainEvent> pulled = List.copyOf(events);
         events.clear();

@@ -1,8 +1,7 @@
 package fr.ynov.autoecole.contextmap;
 
-import fr.ynov.autoecole.planning.lesson.LessonBooked;
-import fr.ynov.autoecole.secretariat.student.Hours;
-import fr.ynov.autoecole.secretariat.student.Student;
+import fr.ynov.autoecole.planning.domain.lesson.LessonBooked;
+import fr.ynov.autoecole.secretariat.domain.student.Student;
 
 /**
  * Une flèche de la context map : le planning dépend du secrétariat.
@@ -11,11 +10,6 @@ import fr.ynov.autoecole.secretariat.student.Student;
 public final class PlanningToSecretariat {
 
     private PlanningToSecretariat() {
-    }
-
-    /** « Lit les heures restantes de l'élève » : R1, pas de leçon sans heure achetée. */
-    public static boolean hasHoursLeft(Student student) {
-        return !student.remainingHours().isLessThan(Hours.ONE);
     }
 
     /** Sur la frise, « Leçon réservée » est suivie de « Heure décomptée ». */

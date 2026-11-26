@@ -1,16 +1,19 @@
 package fr.ynov.autoecole;
 
 import fr.ynov.autoecole.contextmap.ExamsToPlanning;
-import fr.ynov.autoecole.contextmap.PlanningToSecretariat;
-import fr.ynov.autoecole.planning.instructor.Instructor;
-import fr.ynov.autoecole.planning.instructor.InstructorId;
-import fr.ynov.autoecole.planning.lesson.Lesson;
-import fr.ynov.autoecole.planning.lesson.LessonBooked;
-import fr.ynov.autoecole.planning.lesson.LessonGiven;
-import fr.ynov.autoecole.planning.lesson.LessonId;
-import fr.ynov.autoecole.planning.lesson.TimeSlot;
-import fr.ynov.autoecole.secretariat.student.Hours;
-import fr.ynov.autoecole.secretariat.student.Student;
+import fr.ynov.autoecole.planning.application.LessonBooking;
+import fr.ynov.autoecole.planning.domain.instructor.Instructor;
+import fr.ynov.autoecole.planning.domain.instructor.InstructorId;
+import fr.ynov.autoecole.planning.domain.lesson.Lesson;
+import fr.ynov.autoecole.planning.domain.lesson.LessonGiven;
+import fr.ynov.autoecole.planning.domain.lesson.LessonId;
+import fr.ynov.autoecole.planning.domain.lesson.LessonRepository;
+import fr.ynov.autoecole.planning.domain.lesson.TimeSlot;
+import fr.ynov.autoecole.planning.infrastructure.InMemoryLessonRepository;
+import fr.ynov.autoecole.secretariat.domain.student.Hours;
+import fr.ynov.autoecole.secretariat.domain.student.Student;
+import fr.ynov.autoecole.secretariat.domain.student.StudentRepository;
+import fr.ynov.autoecole.secretariat.infrastructure.InMemoryStudentRepository;
 import fr.ynov.autoecole.shared.AggregateRoot;
 import fr.ynov.autoecole.shared.DomainEvent;
 import fr.ynov.autoecole.shared.FullName;
@@ -22,13 +25,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Déroule la frise de l'event storming, de gauche à droite : qui agit, quelle commande,
- * quels événements.
+ * La couche interface, ici la console. Elle assemble les couches, puis déroule la frise de
+ * gauche à droite : qui agit, quelle commande, quels événements. Réserver une leçon passe
+ * par le cas d'usage LessonBooking ; les autres commandes appellent encore la racine.
  */
 public class Main {
 
+    private static final StudentRepository students = new InMemoryStudentRepository();
+    private static final LessonRepository lessons = new InMemoryLessonRepository();
+    private static final LessonBooking booking = new LessonBooking(students, lessons);
+
     private static Student secretariat;
-    private static fr.ynov.autoecole.exams.student.Student exams;
+    private static fr.ynov.autoecole.exams.domain.student.Student exams;
     private static boolean quiet;
 
     public static void main(String[] args) {
@@ -38,9 +46,10 @@ public class Main {
         title("Secretariat: the student registers, the payer buys hours");
         secretariat = new Student(lea, new FullName("Lea", "Martin"));
         tell("secretariat", "register a student", secretariat);
-        exams = new fr.ynov.autoecole.exams.student.Student(lea);
+        exams = new fr.ynov.autoecole.exams.domain.student.Student(lea);
         secretariat.buyHours(new Hours(22));
         tell("payer", "buy hours", secretariat);
+        students.save(secretariat);
 
         title("Exams: the theory exam");
         exams.passTheoryExam();
@@ -80,7 +89,7 @@ public class Main {
         exams.obtainLicence();
         tell("exam result", "", exams);
 
-        title("Planning, R1: a student cannot reserve more hours than bought");
+        title("Planning, R1: a student cannot book more hours than bought");
         System.out.println("Remaining hours: " + secretariat.remainingHours().value());
         attempt("Reserve one more lesson", () -> reserveLesson(paul, day(23)));
 
@@ -90,14 +99,13 @@ public class Main {
         System.out.println("- Does a lesson cancelled in time give its hour back?");
     }
 
-    /** La commande « réserver une leçon » : le planning lit le secrétariat, puis réserve. */
+    /** La commande « réserver une leçon » : le cas d'usage enchaîne, l'élève refuse s'il n'a plus d'heure. */
     private static Lesson reserveLesson(Instructor instructor, LocalDateTime start) {
-        if (!PlanningToSecretariat.hasHoursLeft(secretariat)) {
-            throw new IllegalStateException("R1, no hour left to reserve a lesson");
-        }
         TimeSlot slot = new TimeSlot(start, Duration.ofHours(1));
-        Lesson lesson = new Lesson(LessonId.generate(), secretariat.id(), instructor.id(), slot);
+        LessonId id = booking.book(secretariat.id(), instructor.id(), slot);
+        Lesson lesson = lessons.findById(id).orElseThrow();
         tell("student", "reserve a lesson", lesson);
+        tell("  by LessonBooking", "use an hour", secretariat);
         return lesson;
     }
 
@@ -113,19 +121,11 @@ public class Main {
         events.forEach(Main::translate);
     }
 
-    /** Les flèches de la context map : un événement d'un contexte, une commande dans un autre. */
+    /** Les flèches de la context map qui n'ont pas encore leur cas d'usage. */
     private static void translate(DomainEvent event) {
-        switch (event) {
-            case LessonBooked booked -> {
-                PlanningToSecretariat.translate(booked, secretariat);
-                tell("  after LessonBooked", "use an hour", secretariat);
-            }
-            case LessonGiven given -> {
-                ExamsToPlanning.translate(given, exams);
-                tell("  after LessonGiven", "count a driving hour", exams);
-            }
-            default -> {
-            }
+        if (event instanceof LessonGiven given) {
+            ExamsToPlanning.translate(given, exams);
+            tell("  after LessonGiven", "count a driving hour", exams);
         }
     }
 

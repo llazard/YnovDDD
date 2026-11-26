@@ -1,77 +1,63 @@
-# Auto-école : la frise et les contextes, J2
+# Auto-école : de la modélisation au code, J3
 
 Le code d'exemple du cours de Domain-Driven Design, Mastère 1, Ynov. Il reprend
-l'auto-école du cours de la séance 3 : la même frise, les mêmes contextes, les mêmes mots.
+l'auto-école des cours : la même frise, les mêmes contextes, les mêmes mots.
 
-Cette branche, `j2`, part du modèle du J1 (branche `main`) et montre ce que deviennent
-dans le code l'event storming et les bounded contexts. Les couches, les repositories et
-les tests viendront avec le J3.
+Cette branche, `j3`, part de la branche `j2` (la frise et les contextes dans le code) et
+ajoute les couches, les repositories, un cas d'usage et les tests du domaine.
 
-## Les bounded contexts, un package chacun
+## Les packages : un contexte, puis une couche, puis un aggregate
 
-![La context map de l'auto-école](docs/contextes.svg)
+```text
+src/fr/ynov/autoecole/
+├── secretariat/
+│   ├── domain/student/        Student, Hours, leurs événements, StudentRepository
+│   └── infrastructure/        InMemoryStudentRepository
+├── planning/
+│   ├── domain/lesson/         Lesson, LessonId, TimeSlot, leurs événements, LessonRepository
+│   ├── domain/instructor/     Instructor, InstructorId
+│   ├── application/           LessonBooking, le cas d'usage « réserver une leçon »
+│   └── infrastructure/        InMemoryLessonRepository
+├── exams/
+│   └── domain/student/        Student, DrivingHours, leurs événements
+├── shared/                    StudentId, FullName, DomainEvent, AggregateRoot
+├── contextmap/                PlanningToSecretariat, ExamsToPlanning
+└── Main.java                  la couche interface, ici la console
+test/fr/ynov/autoecole/        les tests, rangés comme les classes qu'ils vérifient
+```
 
-| Contexte | Package | Ce qu'il contient |
+Un contexte n'a que les couches dont il a besoin : les examens n'ont ni cas d'usage ni
+repository dans cet exemple.
+
+| Couche | Ce qu'elle contient | Elle dépend de |
 |---|---|---|
-| Secrétariat | `secretariat` | l'élève, ses heures achetées et décomptées |
-| Planning | `planning` | la leçon, le moniteur, le créneau |
-| Examens | `exams` | l'examen du code, les heures de conduite, l'examen de conduite |
-| ce que les trois partagent | `shared` | l'identité de l'élève, son nom, ce qu'est un événement |
-| les flèches de la context map | `contextmap` | une classe par flèche entre deux de nos contextes : la traduction de l'un vers l'autre ; la flèche vers le paiement en ligne, acheté, n'a pas de code ici |
+| interface | `Main`, la console | toutes les autres, pour les assembler |
+| application | les cas d'usage, sans règle du métier | le domaine |
+| domaine | entités, value objects, aggregates, événements, interfaces des repositories | rien |
+| infrastructure | les repositories en mémoire | le domaine, dont elle implémente les interfaces |
 
-Le J1 rangeait un package par aggregate ; le J2 range ces packages dans leur contexte :
-`planning.lesson`, `planning.instructor`, `secretariat.student`, `exams.student`.
+## Les règles et leurs tests
 
-**Deux classes `Student`.** L'élève existe au secrétariat et aux examens, avec la même
-identité, `StudentId`, mais pas le même modèle : au secrétariat, un nom et des heures
-achetées ; aux examens, le code, les heures de conduite, la présentation. Au planning,
-il n'est qu'un identifiant. **Le mot « heure »** change aussi de sens : `Hours`, les
-heures achetées, au secrétariat ; `DrivingHours`, les heures de conduite données, aux
-examens ; au planning, c'est la leçon elle-même.
-
-## La frise dans le code
-
-| Post-it | Dans le code | Exemple |
+| Règle | Où elle vit | Le test |
 |---|---|---|
-| événement, orange | un record au passé, dans le package de son contexte | `LessonBooked` |
-| commande, bleu | une méthode de la racine, à l'infinitif | `Lesson.cancel` |
-| acteur, jaune | celui qui appelle la commande, ici `Main` | l'élève, le moniteur |
-| règle devant un événement | la méthode refuse, et l'événement n'a pas lieu | R1, R2, les vingt heures |
-| point chaud, rose | un commentaire `Hot spot` : la question reste posée au métier | dans `Lesson.cancel` |
-| un événement qui en suit un autre | une traduction, dans `contextmap` | « Leçon réservée », puis « Heure décomptée » |
-
-Chaque racine hérite d'`AggregateRoot` : ses commandes enregistrent leurs événements,
-et celui qui a lancé la commande les récupère par `pullEvents()`.
-
-| Événement de la frise | Contexte | Dans le code |
-|---|---|---|
-| Élève inscrit | Secrétariat | `StudentRegistered` |
-| Heures achetées | Secrétariat | `HoursPurchased` |
-| Paiement reçu | Paiement en ligne | rien : un sous-domaine générique, acheté à un prestataire |
-| Heure décomptée | Secrétariat | `HourUsed` |
-| Examen du code réussi | Examens | `TheoryExamPassed` |
-| Leçon réservée | Planning | `LessonBooked` |
-| Leçon annulée | Planning | `LessonCancelled` |
-| Leçon due, car annulée moins de 48 heures avant | Planning | `LessonDue` |
-| Leçon donnée | Planning | `LessonGiven` |
-| Vingt heures de conduite atteintes | Examens | `TwentyDrivingHoursReached` |
-| Élève présenté à l'examen de conduite | Examens | `PresentedToDrivingExam` |
-| Permis obtenu | Examens | `LicenceObtained` |
+| Des heures ne sont jamais négatives | `Hours` | `hoursAreNeverNegative` |
+| R1 : un élève ne peut pas réserver plus d'heures qu'il n'en a achetées | `Student.useHour`, appelé par `LessonBooking` | `aStudentCannotBookMoreHoursThanBought` |
+| R2 : une leçon annulée moins de 48 heures avant reste due | `Lesson.cancel` | `aLessonCancelledLessThan48HoursBeforeIsDue` |
+| Une leçon donnée ou annulée ne change plus | `Lesson.ensureBooked` | `aGivenLessonCannotBeCancelled` |
+| Pas d'examen de conduite avant vingt heures | `exams.Student.presentToDrivingExam` | `aStudentIsNotPresentedToTheDrivingExamBeforeTwentyDrivingHours` |
 
 ## Lancer
 
-Java 21 ou plus, sans outil de build : le code est dans `src/`. `Main` déroule la frise
-de gauche à droite : à chaque ligne, l'acteur, la commande, les événements, puis ce
-qu'en font les autres contextes. Il essaie aussi ce que le métier interdit.
+Java 21 ou plus. Maven n'a pas besoin d'être installé : `mvnw` le télécharge.
 
 ```bash
-javac -d out $(find src -name "*.java")
-java -cp out fr.ynov.autoecole.Main
+./mvnw test
+java -cp target/classes fr.ynov.autoecole.Main
 ```
 
 Sous Windows, en PowerShell :
 
 ```powershell
-javac -d out (Get-ChildItem -Recurse src -Filter *.java).FullName
-java -cp out fr.ynov.autoecole.Main
+.\mvnw.cmd test
+java -cp target/classes fr.ynov.autoecole.Main
 ```
