@@ -43,60 +43,60 @@ public class Main {
         StudentId lea = StudentId.generate();
         Instructor paul = new Instructor(InstructorId.generate(), new FullName("Paul", "Durand"));
 
-        title("Secretariat: the student registers, the payer buys hours");
-        secretariat = new Student(lea, new FullName("Lea", "Martin"));
-        tell("secretariat", "register a student", secretariat);
+        title("Secrétariat : l'élève s'inscrit, le payeur achète des heures");
+        secretariat = new Student(lea, new FullName("Léa", "Martin"));
+        tell("secrétariat", "inscrire un élève", secretariat);
         exams = new fr.ynov.autoecole.exams.domain.student.Student(lea);
         secretariat.buyHours(new Hours(22));
-        tell("payer", "buy hours", secretariat);
+        tell("payeur", "acheter des heures", secretariat);
         students.save(secretariat);
 
-        title("Exams: the theory exam");
+        title("Examens : l'examen du code");
         exams.passTheoryExam();
-        tell("exam result", "", exams);
+        tell("résultat d'examen", "", exams);
 
-        title("Planning: a lesson booked, then given");
+        title("Planning : une leçon réservée, puis donnée");
         Lesson first = reserveLesson(paul, day(1));
         first.give();
-        tell("instructor", "give a lesson", first);
+        tell("moniteur", "donner une leçon", first);
 
-        title("Planning, R2: a lesson cancelled less than 48 hours before is still due");
+        title("Planning, R2 : une leçon annulée moins de 48 heures avant reste due");
         Lesson early = reserveLesson(paul, day(2));
         early.cancel(day(2).minusHours(72));
-        tell("student", "cancel a lesson, 72 hours before", early);
+        tell("élève", "annuler une leçon, 72 heures avant", early);
         Lesson late = reserveLesson(paul, day(3));
         late.cancel(day(3).minusHours(24));
-        tell("student", "cancel a lesson, 24 hours before", late);
+        tell("élève", "annuler une leçon, 24 heures avant", late);
 
-        title("Exams: the rules refuse what the business forbids");
-        attempt("Present Lea to the driving exam after 1 driving hour", exams::presentToDrivingExam);
+        title("Examens : les règles refusent ce que le métier interdit");
+        attempt("Présenter Léa à l'examen de conduite après 1 heure de conduite", exams::presentToDrivingExam);
 
-        title("Planning: 18 more lessons, without printing them, then the twentieth");
+        title("Planning : 18 leçons de plus, sans les afficher, puis la vingtième");
         quiet = true;
         for (int day = 4; day < 22; day++) {
             Lesson lesson = reserveLesson(paul, day(day));
             lesson.give();
-            tell("instructor", "give a lesson", lesson);
+            tell("moniteur", "donner une leçon", lesson);
         }
         quiet = false;
         Lesson twentieth = reserveLesson(paul, day(22));
         twentieth.give();
-        tell("instructor", "give a lesson", twentieth);
+        tell("moniteur", "donner une leçon", twentieth);
 
-        title("Exams: the student is presented, then gets the licence");
+        title("Examens : l'élève est présenté, puis obtient le permis");
         exams.presentToDrivingExam();
-        tell("secretariat", "present a student to the exam", exams);
+        tell("secrétariat", "présenter un élève à l'examen", exams);
         exams.obtainLicence();
-        tell("exam result", "", exams);
+        tell("résultat d'examen", "", exams);
 
-        title("Planning, R1: a student cannot book more hours than bought");
-        System.out.println("Remaining hours: " + secretariat.remainingHours().value());
-        attempt("Reserve one more lesson", () -> reserveLesson(paul, day(23)));
+        title("Planning, R1 : un élève ne réserve pas plus d'heures qu'il n'en a acheté");
+        System.out.println("Heures restantes : " + secretariat.remainingHours().value());
+        attempt("Réserver une leçon de plus", () -> reserveLesson(paul, day(23)));
 
-        title("Hot spots, still questions for the business");
-        System.out.println("- Is a lesson cancelled for illness, with a certificate, still due?");
-        System.out.println("- Do the twenty hours count the lessons due but not given?");
-        System.out.println("- Does a lesson cancelled in time give its hour back?");
+        title("Points chauds, encore des questions pour le métier");
+        System.out.println("- Une leçon annulée pour maladie, avec un certificat, reste-t-elle due ?");
+        System.out.println("- Les vingt heures comptent-elles les leçons dues mais non données ?");
+        System.out.println("- Une leçon annulée à temps rend-elle son heure ?");
     }
 
     /** La commande « réserver une leçon » : le cas d'usage enchaîne, l'élève refuse s'il n'a plus d'heure. */
@@ -104,8 +104,8 @@ public class Main {
         TimeSlot slot = new TimeSlot(start, Duration.ofHours(1));
         LessonId id = booking.book(secretariat.id(), instructor.id(), slot);
         Lesson lesson = lessons.findById(id).orElseThrow();
-        tell("student", "reserve a lesson", lesson);
-        tell("  by LessonBooking", "use an hour", secretariat);
+        tell("élève", "réserver une leçon", lesson);
+        tell("  par LessonBooking", "utiliser une heure", secretariat);
         return lesson;
     }
 
@@ -116,7 +116,7 @@ public class Main {
             String names = events.stream()
                     .map(event -> event.getClass().getSimpleName())
                     .collect(Collectors.joining(", "));
-            System.out.printf("%-22s %-34s %s%n", actor, command, names.isEmpty() ? "-" : names);
+            System.out.printf("%-22s %-36s %s%n", actor, command, names.isEmpty() ? "-" : names);
         }
         events.forEach(Main::translate);
     }
@@ -125,7 +125,7 @@ public class Main {
     private static void translate(DomainEvent event) {
         if (event instanceof LessonGiven given) {
             ExamsToPlanning.translate(given, exams);
-            tell("  after LessonGiven", "count a driving hour", exams);
+            tell("  après LessonGiven", "compter une heure de conduite", exams);
         }
     }
 
@@ -141,9 +141,9 @@ public class Main {
     private static void attempt(String action, Runnable rule) {
         try {
             rule.run();
-            System.out.println(action + ": accepted");
+            System.out.println(action + " : accepté");
         } catch (RuntimeException refused) {
-            System.out.println(action + ": refused, " + refused.getMessage());
+            System.out.println(action + " : refusé, " + refused.getMessage());
         }
     }
 }
